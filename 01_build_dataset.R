@@ -9,14 +9,12 @@
 #   $ lon : num [1:...]
 
 rm(list=ls()) # clear all variable
-library("ncdf4")
-library("ggplot2")
+library("ncdf4") # package to open NetCDF file
 
-folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/..."
-# lon_lim <- c(-70,20)
-# lat_lim <- c(59,82)
+folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/"
 
 nweeks <- 46 # there are 46 8-day weeks in one year
+jdays <- seq(1,
 chl_clim <- c()
 
 for (n in 1:nweeks) {
