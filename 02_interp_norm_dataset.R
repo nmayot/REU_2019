@@ -3,21 +3,24 @@
 #
 # --- Open dataset --------------------------------------------------
 #
-# Here mr.rdata => dataset == List of 5
-#   $ data: num [1:138240, 1:46] NA NA NA NA NA NA NA NA NA NA ...
-#   $ lat : num [1:288, 1:480] 30 30 30 30 30 ...
-#   $ lon : num [1:288, 1:480] 32 32.1 32.1 32.1 32.2 ...
-#   $ xo  : int [1:138240] 1 2 3 4 5 6 7 8 9 10 ...
-#   $ yo  : int [1:138240] 1 1 1 1 1 1 1 1 1 1 ...
+# dataset == List of 6
+#   $ CHL    : num [1:97920, 1:46] NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN ...
+#   $ LON    : num [1:97920] -5.96 -5.87 -5.79 -5.71 -5.62 ...
+#   $ LAT    : num [1:97920] 46 46 46 46 46 ...
+#   $ mask   : num [1:510, 1:192] 0 0 0 0 0 0 0 0 0 0 ...
+#   $ lon_map: num [1:510(1d)] -5.96 -5.87 -5.79 -5.71 -5.62 ...
+#   $ lat_map: num [1:192(1d)] 46 45.9 45.8 45.7 45.6 ...
 
 rm(list=ls()) # clear all variable
-library("fpc")
-# library("fields")
 
-load(file="C:/Users/nmayot/Documents/side works/201903-David-A/Australia/CHL_Month.rdata")
+#--- Read dataset ----
+folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
+filename <- "SeaWiFS_climato_1997_2007_8D_CHL.rdata" # Name of the dataset
 
-adresults <- data$CHL
-nweeks <- dim(adresults)[2]
+load(file = paste(folder,filename,sep = "")) # Load dataset
+
+CHL <- dataset$CHL # climatological dataset (row = pixel, column = weeks)
+nweeks <- dim(CHL)[2] # number of weeks (= number of columns)
 
 
 # --- Interpollation and Normalization ----------------------------------------------
@@ -25,24 +28,29 @@ nweeks <- dim(adresults)[2]
 #
 # Linear interpolation to remove NA, and divide each time series by its maximal value 
 
-adresults_norm <- array(dim = dim(adresults)) # Colonne = Time (variables), Line = Pixel (stations)
-maxo_row <- array(dim = c(dim(adresults)[1],1))
+CHL_norm <- array(dim = dim(CHL)) # same dimension as the non-normalized dataset
+CHL_max <- array(dim = c(dim(CHL)[1],1)) # maximal value for each time series (one timeserie per pixel)
 
-cpt <- 0
-for (i in 1:nrow(adresults)) {
-  cpt <- cpt + 1
-  r <- adresults[i,] # Time series
-  d <- which(is.finite(r) == T) # Locations NA
-  diff_d <- d[2:length(d)] - d[1:length(d)-1] # number of weeks btw NA
+# loop over each pixel (= timeserie)
+cpt <- 0 # counter of timeserie
+for (i in 1:nrow(CHL)) {
   
-  if (length(d) >= round(nweeks/2) & length(which(diff_d >= 5)) == 0) { # at least a half weeks of data with a data point every 4 weeks 
-    row_value <-approx(1:nweeks,r,xout=1:nweeks,rule=2)$y # linearly interpolate
-    maxo_row[cpt] <- max(row_value) # save max value
-    adresults_norm[cpt,] <- row_value/maxo_row[cpt] # Normalization (divide by max)
+  cpt <- cpt + 1 # iterate counter
+  
+  r <- CHL[i,] # row timeserie
+  n <- which(!is.na(r)) # locations of non-NAs
+  diff_n <- n[2:length(n)] - n[1:length(n)-1] # number of weeks inbetween non-NAs
+  
+  if (length(n) >= round(nweeks/2) & length(which(diff_n >= 5)) == 0) { # at least a half weeks of data with a data point every 4 weeks 
+    r_interp <- approx(1:nweeks,r,xout=1:nweeks,rule=2)$y # linearly interpolate (extrapolation repeat the closest known values)
+    CHL_max[cpt] <- max(r_interp) # save max value of the timeserie
+    CHL_norm[cpt,] <- r_interp/CHL_max[cpt] # normalization (divide by maximal value)
   }
 }
 
+#--- Save dataset ----
+dataset$CHL_norm <- CHL_norm # latitude of the MedSea map
+dataset$CHL_max <- CHL_max # latitude of the MedSea map
+dataset$gp <- which(!is.na(CHL_norm[,1])) # pixels (timeseries) without NA to be clusterized (gp = good points)
+save(dataset, file = paste(folder,"SeaWiFS_climato_1997_2007_8D_CHL_CHLnorm.rdata",sep="")) # save rdata into the same folder
 
-adresults <- adresults_norm # save data for clustering
-good_points <- which(is.na(adresults[,1]) == F) # pixels without NA to be cluterized
-bad_points <- which(is.na(adresults[,1]) == T) # pixels with NA
