@@ -16,7 +16,7 @@ filenames <- list.files(path = folder) # all filenames into this folder
 nweeks <- 46 # there are 46 weeks of 8-day in one year
 jdays <- seq(1,366,8) # julian day of the first day of each 8-day week (1, 9, 17..., 361)
 years <- 1997:2007 # years of the climato
-load("C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/mask_SW") # mask of the MedSea for SeaWiFS data
+load("C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/mask_SW.Rdata") # mask of the MedSea for SeaWiFS data
 
 chl_clim <- c() # to save the CHL data
 
@@ -68,15 +68,18 @@ for (j in jdays) {
     }
     
   }
-  chl_week <- rowMeans(chl_week, na.rm = FALSE) # weekly climatology
+  chl_week <- rowMeans(chl_week, na.rm = TRUE) # weekly climatology
   chl_clim <- cbind(chl_clim, chl_week) # save into matrix (row = pixel, column = week)
 }
+dimnames(chl_clim) <- c() # remove dimension names (e.g., colnames)
 
-#----- Build dataset and save
+#----- Build the dataset and save it
 dataset <- c()
-dataset$CHL <- chl_clim
-dataset$lon <- LON
-dataset$lat <- LAT
-dataset$mask <- mask_SW
-save(dataset, file = "C:/Users/nmayot/Documents/...rdata")
+dataset$CHL <- chl_clim # rows = pixels, column = 8-day weeks (x46)
+dataset$LON <- LON # rows = longitude of each pixel
+dataset$LAT <- LAT # rows = latitude of each pixel
+dataset$mask <- mask_SW # mask of the MedSea used
+dataset$lon_map <- lon # longitude of the MedSea map
+dataset$lat_map <- lat # latitude of the MedSea map
+save(dataset, file = paste(folder,"SeaWiFS_climato_1997_2007_8D_CHL.rdata",sep="")) # save rdata into the same folder
 
