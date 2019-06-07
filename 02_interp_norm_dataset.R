@@ -14,7 +14,8 @@
 rm(list=ls()) # clear all variable
 
 #--- Read dataset ----
-folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
+# folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
+folder <- "C:/Users/mricc/OneDrive/Documents/2019 REU/DATA/SeaWiFS/" # folder with data
 filename <- "SeaWiFS_climato_1997_2007_8D_CHL.rdata" # Name of the dataset
 
 load(file = paste(folder,filename,sep = "")) # Load dataset
@@ -32,19 +33,16 @@ CHL_norm <- array(dim = dim(CHL)) # same dimension as the non-normalized dataset
 CHL_max <- array(dim = c(dim(CHL)[1],1)) # maximal value for each time series (one timeserie per pixel)
 
 # loop over each pixel (= timeserie)
-cpt <- 0 # counter of timeserie
 for (i in 1:nrow(CHL)) {
-  
-  cpt <- cpt + 1 # iterate counter
-  
+
   r <- CHL[i,] # row timeserie
   n <- which(!is.na(r)) # locations of non-NAs
   diff_n <- n[2:length(n)] - n[1:length(n)-1] # number of weeks inbetween non-NAs
   
   if (length(n) >= round(nweeks/2) & length(which(diff_n >= 5)) == 0) { # at least a half weeks of data with a data point every 4 weeks 
     r_interp <- approx(1:nweeks,r,xout=1:nweeks,rule=2)$y # linearly interpolate (extrapolation repeat the closest known values)
-    CHL_max[cpt] <- max(r_interp) # save max value of the timeserie
-    CHL_norm[cpt,] <- r_interp/CHL_max[cpt] # normalization (divide by maximal value)
+    CHL_max[i] <- max(r_interp) # save max value of the timeserie
+    CHL_norm[i,] <- r_interp/CHL_max[i] # normalization (divide by maximal value)
   }
 }
 
