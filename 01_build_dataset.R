@@ -11,12 +11,13 @@
 rm(list=ls()) # clear all variable
 library("ncdf4") # package to open NetCDF
 
-folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
+# folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
+folder <- "C:/Users/mricc/OneDrive/Documents/2019 REU/DATA/SeaWiFS/" # folder with data
 filenames <- list.files(path = folder) # all filenames into this folder
 nweeks <- 46 # there are 46 weeks of 8-day in one year
 jdays <- seq(1,366,8) # julian day of the first day of each 8-day week (1, 9, 17..., 361)
 years <- 1997:2007 # years of the climato
-load("C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/mask_SW.Rdata") # mask of the MedSea for SeaWiFS data
+load(paste(folder,"mask_SW.Rdata",sep="")) # mask of the MedSea for SeaWiFS data
 
 chl_clim <- c() # to save the CHL data
 
