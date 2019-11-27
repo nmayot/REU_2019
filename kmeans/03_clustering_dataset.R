@@ -21,11 +21,9 @@ library("ggplot2") # for plotting
 library("RColorBrewer")  # for colors of the plots
 library("gridExtra") # for displaying subplots
 
-#folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
-folder <- "C:/Users/mricc/OneDrive/Documents/2019 REU/DATA/SeaWiFS/" # folder with data
-# folder <- "C:/Users/mricc/OneDrive/Documents/2019 REU/DATA/MODIS-Aqua/" # folder with data
-filename <- "SeaWiFS_climato_1997_2007_8D_CHL_CHLnorm.rdata" # Name of the dataset
-# filename <- "MODIS-Aqua_climato_2007_2017_8D_CHL_CHLnorm.rdata" # Name of the dataset
+folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/MODIS-Aqua/" # folder with data
+# filename <- "SeaWiFS_climato_1997_2007_8D_CHL_CHLnorm.rdata" # Name of the dataset
+filename <- "MODIS_climato_2007_2017_8D_CHL_CHLnorm.rdata" # Name of the dataset
 
 load(file = paste(folder,filename,sep="")) # load dataset (row = pixels, column = variables)
 
@@ -35,11 +33,11 @@ gp <- dataset$gp # pixel (observations) to be clusterized
 
 # --- Clustering --------------------------------------------------
 
-nclu <- 7 # number of clusters wanted
+nclu <- 4 # number of clusters wanted
 nruns <- 10 # number of time you should do the clustering
 niter <- 500 # number of iteration before to stop the kmeans process
 
-cl<-kmeansCBI(CHL[gp,],k=nclu,scaling=F,runs=nruns, iter.max=niter, algorithm="Lloyd") # clustering Kmeans, runs: Number of starts of the k-means
+cl<-kmeansCBI(CHL[gp,],k=nclu,scaling=T,runs=nruns, iter.max=niter, algorithm="Lloyd") # clustering Kmeans, runs: Number of starts of the k-means
 
 dataset$cluster <- cl$result$cluster
 
