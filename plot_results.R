@@ -20,7 +20,7 @@ dataset_seawifs <- dataset
 
 # --- quick plots of the results
 rm(list=setdiff(ls(), c("dataset_modis", "dataset_seawifs")))
-info <- dataset_modis # dataset_seawifs #
+info <- dataset # dataset_seawifs #
 
 clus <- info$cluster
 gp <- info$gp
@@ -30,7 +30,8 @@ col <- brewer.pal(7, "Dark2")
 
 
 # for the map
-map_clus <- ggplot() +
+#map_clus <- 
+  ggplot() +
   geom_raster(aes(x = lon, y = lat, fill = factor(clus)), interpolate = FALSE) +
   scale_fill_manual(values = col[1:max(clus)]) +
   coord_quickmap() +  # Prevents stretching when resizing
