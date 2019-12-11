@@ -1,31 +1,25 @@
 ### Clustering the dataset ---------------------------------
 #
 #
-# --- Used dataset --------------------------------------------------
-#
-# dataset == List of 9
-#   $ CHL     : num [1:97920, 1:46] NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN ...
-#   $ LON     : num [1:97920] -5.96 -5.87 -5.79 -5.71 -5.62 ...
-#   $ LAT     : num [1:97920] 46 46 46 46 46 ...
-#   $ mask    : num [1:510, 1:192] 0 0 0 0 0 0 0 0 0 0 ...
-#   $ lon_map : num [1:510(1d)] -5.96 -5.87 -5.79 -5.71 -5.62 ...
-#   $ lat_map : num [1:192(1d)] 46 45.9 45.8 45.7 45.6 ...
-#   $ CHL_norm: num [1:97920, 1:46] NA NA NA NA NA NA NA NA NA NA ...
-#   $ CHL_max : num [1:97920, 1] NA NA NA NA NA NA NA NA NA NA ...
-#   $ gp      : int [1:36692] 1760 1761 1762 1764 1765 1766 2268 2269 2270 2271 ...
 
 
 rm(list=ls()) # clear all variable
 library("fpc") # for clustering
-library("ggplot2") # for plotting
-library("RColorBrewer")  # for colors of the plots
-library("gridExtra") # for displaying subplots
 
-folder <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/MODIS-Aqua/" # folder with data
-# filename <- "SeaWiFS_climato_1997_2007_8D_CHL_CHLnorm.rdata" # Name of the dataset
-filename <- "MODIS_climato_2007_2017_8D_CHL_CHLnorm.rdata" # Name of the dataset
+# --- Open dataset ------------------------------------------------
+folder_S <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
+folder_M <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/MODIS-Aqua/" # folder with data
+folder_C <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/occci-v3.1/" # folder with data
 
-load(file = paste(folder,filename,sep="")) # load dataset (row = pixels, column = variables)
+filename_S <- "SW_climato_1997_2007_8D_CHL_coastfree_norm.rdata" # Name of the dataset
+filename_M <- "MODIS_climato_2007_2017_8D_CHL_coastfree_norm.rdata" # Name of the dataset
+filename_C1 <- "CCI_climato_1997_2007_8D_CHL_coastfree_norm.rdata"
+filename_C2 <- "CCI_climato_2007_2017_8D_CHL_coastfree_norm.rdata"
+
+load(file = paste(folder_S,filename_S,sep="")) # load dataset (row = pixels, column = variables)
+load(file = paste(folder_M,filename_M,sep="")) # load dataset (row = pixels, column = variables)
+load(file = paste(folder_C,filename_C1,sep="")) # load dataset (row = pixels, column = variables)
+load(file = paste(folder_C,filename_C2,sep="")) # load dataset (row = pixels, column = variables)
 
 CHL <- dataset$CHL_norm # dataset to be cluterized
 gp <- dataset$gp # pixel (observations) to be clusterized
@@ -37,10 +31,35 @@ nclu <- 4 # number of clusters wanted
 nruns <- 10 # number of time you should do the clustering
 niter <- 500 # number of iteration before to stop the kmeans process
 
-cl<-kmeansCBI(CHL[gp,],k=nclu,scaling=T,runs=nruns, iter.max=niter, algorithm="Lloyd") # clustering Kmeans, runs: Number of starts of the k-means
+tschl <- scale(CHL[gp,], scale=T, center=T) # scaled data
+# tschl <- CHL[gp,] # non-scaled data
 
+cl<-kmeansCBI(tschl,k=nclu,scaling=F,runs=nruns, iter.max=niter, algorithm="Lloyd") # clustering Kmeans, runs: Number of starts of the k-means
+
+# --- Save results ------------------------------------------------
 dataset$cluster <- cl$result$cluster
 
-# filename <- "MODIS-Aqua_climato_2007_2017_8D_CHL_CHLnorm_cl.rdata" # Name of the dataset
-filename <- "SeaWiFS_climato_1997_2007_8D_CHL_CHLnorm_cl.rdata" # Name of the dataset
-save(dataset, file = paste(folder,filename,sep=""))
+save(dataset, file = paste(folder_S,"SW_climato_1997_2007_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+save(dataset, file = paste(folder_M,"MODIS_climato_2007_2017_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+save(dataset, file = paste(folder_C,"CCI_climato_1997_2007_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+save(dataset, file = paste(folder_C,"CCI_climato_2007_2017_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+
+# --- Match cluster vector ----------------------------------------
+source("C:/Users/nmayot/Documents/PostDoc/teaching supervise/REU 2019/scripts/REU_2019/00_functions.R") # functions
+
+folder_S <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/SeaWiFS/" # folder with data
+folder_M <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/MODIS-Aqua/" # folder with data
+folder_C <- "C:/Users/nmayot/Documents/PostDoc/data/satellite/occci-v3.1/" # folder with data
+
+load(file = paste(folder_S,"SW_climato_1997_2007_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+clus_01 <- dataset$cluster
+load(file = paste(folder_M,"MODIS_climato_2007_2017_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+load(file = paste(folder_C,"CCI_climato_1997_2007_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+load(file = paste(folder_C,"CCI_climato_2007_2017_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+clus_02 <- dataset$cluster
+
+clus_new <- match_cluster(clus_01, clus_02)
+dataset$cluster <- clus_new
+save(dataset, file = paste(folder_M,"MODIS_climato_2007_2017_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+save(dataset, file = paste(folder_C,"MODIS_climato_1997_2007_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder
+save(dataset, file = paste(folder_C,"MODIS_climato_2007_2017_8D_CHL_coastfree_norm_cl.rdata",sep="")) # save rdata into the same folder

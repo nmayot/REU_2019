@@ -32,7 +32,7 @@ col <- brewer.pal(7, "Dark2")
 # for the map
 #map_clus <- 
   ggplot() +
-  geom_raster(aes(x = lon, y = lat, fill = factor(clus)), interpolate = FALSE) +
+  geom_tile(aes(x = lon, y = lat, fill = factor(clus))) +
   scale_fill_manual(values = col[1:max(clus)]) +
   coord_quickmap() +  # Prevents stretching when resizing
   theme_bw() +
